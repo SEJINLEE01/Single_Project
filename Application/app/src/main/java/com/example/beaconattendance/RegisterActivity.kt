@@ -54,29 +54,33 @@ class RegisterActivity : AppCompatActivity() {
 
             val logData = createLogData(this@RegisterActivity,"SignIn")
 
-            RetrofitClient.api.saveAttendance(logData).enqueue(object : Callback<Any> {
-                override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                    // 성공해도 딱히 처리 안 해도 됨
-                }
-                override fun onFailure(call: Call<Any>, t: Throwable) {
-                    // 실패해도 딱히 처리 안 해도 됨
-                }
-            })
 
-            RetrofitClient.api.register(phoneData).enqueue(object : Callback<Any> {
-                override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(this@RegisterActivity, "회원가입 성공!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
-                        finish()
-                    } else {
-                        Toast.makeText(this@RegisterActivity, "이미 존재하는 아이디입니다", Toast.LENGTH_SHORT).show()
+            RetrofitClient.api.register(phoneData).enqueue(object : Callback<RegisterResponse> {
+                override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
+                    when (response.body()?.success) {
+                        1 -> {
+                            RetrofitClient.api.saveAttendance(logData).enqueue(object : Callback<Any> {
+                                override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                                }
+                                override fun onFailure(call: Call<Any>, t: Throwable) {
+                                }
+                            })
+
+                            Toast.makeText(this@RegisterActivity, "회원가입 성공!", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
+                            finish()
+                        }
+                        2 -> Toast.makeText(this@RegisterActivity, "이미 등록된 기기입니다", Toast.LENGTH_SHORT).show()
+                        3 -> Toast.makeText(this@RegisterActivity, "이미 존재하는 아이디입니다", Toast.LENGTH_SHORT).show()
                     }
                 }
-                override fun onFailure(call: Call<Any>, t: Throwable) {
+                override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
                     Toast.makeText(this@RegisterActivity, "서버 연결 실패", Toast.LENGTH_SHORT).show()
                 }
             })
+
+
+
         }
     }
 }
