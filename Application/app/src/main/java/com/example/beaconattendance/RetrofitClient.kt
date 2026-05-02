@@ -3,7 +3,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://leyla-semimat-lula.ngrok-free.dev/"
+    private const val BASE_URL = "https://leyla-semimat-lula.ngrok-free.dev"
 
     lateinit var api: AttendanceApi
 

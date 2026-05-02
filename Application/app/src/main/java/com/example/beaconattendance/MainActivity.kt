@@ -24,41 +24,19 @@ import retrofit2.Callback
 import retrofit2.Response
 import android.content.Intent
 
-data class LogData(
-    val action: String,
-    val device_address: String
-)
-data class PhoneData(
-    val id: String,
-    val password: String,
-    val device_name: String,
-    val device_address: String
-)
-data class LoginData(
-    val id: String,
-    val password: String
-)
 
-data class LoginResponse(
-    val success: Boolean
-)
-
-interface AttendanceApi {
-    @POST("attendance")
-    fun saveAttendance(@Body data: LogData): Call<Any>
-
-    @POST("Add_Device")   // ← 추가
-    fun register(@Body data: PhoneData): Call<Any>
-
-    @POST("login")
-    fun login(@Body data: LoginData): Call<LoginResponse>
-}
 class MainActivity : AppCompatActivity() {
-
+    private lateinit var checkData: Check
+    private var isProcessing = false
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var statusText: TextView
     private lateinit var logText: TextView
     private var isScanning = false
+    private val resumeHandler = Handler(Looper.getMainLooper())
+    private val resumeRunnable = Runnable {
+        isProcessing = false
+        startScan()
+    }
 
     private var lastAttendanceTime: Long = 0
     private val ATTENDANCE_COOLDOWN = 30 * 1000L // 30초
@@ -70,14 +48,19 @@ class MainActivity : AppCompatActivity() {
 
         statusText = findViewById(R.id.statusText)
         logText = findViewById(R.id.logText)
-
-
+        checkData = Check(device_address = android.provider.Settings.Secure.getString(
+            contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID))
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
 
         val btnLogout = findViewById<Button>(R.id.btnLogout)
         btnLogout.setOnClickListener {
+            lastAttendanceTime = 0L
+            getSharedPreferences("AttendanceTime", MODE_PRIVATE)
+                .edit().putLong("lastAttendanceTime", 0L).apply()
+
             val logData = createLogData(this@MainActivity, "LogOut")
             RetrofitClient.api.saveAttendance(logData).enqueue(object : Callback<Any> {
                 override fun onResponse(call: Call<Any>, response: Response<Any>) {}
@@ -95,6 +78,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        isProcessing = false
         //앱을 껏다켰을때도 저장해있던 값을 가져옴
         lastAttendanceTime = getSharedPreferences("AttendanceTime", MODE_PRIVATE)
             .getLong("lastAttendanceTime", 0L)
@@ -107,15 +91,14 @@ class MainActivity : AppCompatActivity() {
             else -> {
                 // 아직 시간 안 지남 → Handler로 남은 시간만큼 예약
                 val remaining = ATTENDANCE_COOLDOWN - timeSinceLast
-                Handler(Looper.getMainLooper()).postDelayed({
-                    startScan()
-                }, remaining)
+                resumeHandler.postDelayed(resumeRunnable, remaining)
             }
         }
     }
 
     override fun onPause() {
         super.onPause()
+        resumeHandler.removeCallbacks(resumeRunnable)
         stopScan()
     }
 
@@ -165,37 +148,59 @@ class MainActivity : AppCompatActivity() {
             val rssi = result.rssi
 
             if (deviceName.contains("MiniBeacon") && rssi >= -60) {
-                // addLog("$rssi")
+                if (isProcessing) return  // 처리 중이면 무시
+                isProcessing = true
+
                 val currentTime = System.currentTimeMillis()
                 val timeSinceLast = currentTime - lastAttendanceTime
 
-                // addLog("시간이 $lastAttendanceTime") //시간체크용 디버
-                when {
-                    lastAttendanceTime == 0L-> {
-                        sendAttendance("attendance")
-                        lastAttendanceTime = currentTime
-
-                        //마지막 시간으로 저장
-                        getSharedPreferences("AttendanceTime", MODE_PRIVATE)
-                            .edit().putLong("lastAttendanceTime", lastAttendanceTime).apply()
-                        addLog("✅ 출석 처리")
-                    }
-                    timeSinceLast >= ATTENDANCE_COOLDOWN -> {
-                        sendAttendance("checkout")
-                        lastAttendanceTime = 0L
-
-                        //퇴실 후이니까 0으로 저장
-                        getSharedPreferences("AttendanceTime", MODE_PRIVATE)
-                            .edit().putLong("lastAttendanceTime", 0L).apply()
-
-                        addLog("👋 퇴실 처리")
-                    }
+                if (lastAttendanceTime != 0L && timeSinceLast < ATTENDANCE_COOLDOWN) {
+                    isProcessing = false
+                    return
                 }
+
+                RetrofitClient.api.getStatus(checkData).enqueue(object : Callback<StatusResponse> {
+                    override fun onResponse(call: Call<StatusResponse>, response: Response<StatusResponse>) {
+                        val status = response.body()?.status
+                        if (status == 0) {
+                            // 퇴실 상태 → 출석 처리
+                            sendAttendance("attendance")
+
+                            lastAttendanceTime = currentTime
+
+                            //마지막 시간으로 저장
+                            getSharedPreferences("AttendanceTime", MODE_PRIVATE)
+                                .edit().putLong("lastAttendanceTime", lastAttendanceTime).apply()
+
+                            addLog("✅ 출석 처리")
+                        } else {
+                            // 출석 상태 → 퇴실 처리
+                            sendAttendance("checkout")
+
+                            lastAttendanceTime = currentTime  // 0L이 아니라 현재 시간 저장!
+                            getSharedPreferences("AttendanceTime", MODE_PRIVATE)
+                                .edit().putLong("lastAttendanceTime", currentTime).apply()
+
+                            addLog("👋 퇴실 처리")
+                        }
+
+                        // 시간이 지난뒤 정상적으로 스캔이된다면 실행
+
+                        stopScan()
+                        resumeHandler.postDelayed(resumeRunnable, ATTENDANCE_COOLDOWN)
+                    }
+                    override fun onFailure(call: Call<StatusResponse>, t: Throwable) {
+                        addLog("❌ 서버 연결 실패: ${t.message}")
+                        isProcessing = false
+                    }
+                })
             }
         }
     }
 
     private fun sendAttendance(action: String) {
+
+
         val logData = createLogData(this@MainActivity, action)
         RetrofitClient.api.saveAttendance(logData).enqueue(object : Callback<Any> {
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
@@ -207,6 +212,18 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onFailure(call: Call<Any>, t: Throwable) {
                 addLog("❌ 서버 연결 실패: ${t.message}")
+            }
+        })
+
+        // 서버에서 값 출석 <-> 퇴실 바꾸는 api
+        RetrofitClient.api.check(checkData).enqueue(object : Callback<Any> {
+            override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                if (response.isSuccessful) {
+
+                }
+            }
+            override fun onFailure(call: Call<Any>, t: Throwable) {
+
             }
         })
     }
