@@ -57,10 +57,6 @@ class MainActivity : AppCompatActivity() {
 
         val btnLogout = findViewById<Button>(R.id.btnLogout)
         btnLogout.setOnClickListener {
-            lastAttendanceTime = 0L
-            getSharedPreferences("AttendanceTime", MODE_PRIVATE)
-                .edit().putLong("lastAttendanceTime", 0L).apply()
-
             val logData = createLogData(this@MainActivity, "LogOut")
             RetrofitClient.api.saveAttendance(logData).enqueue(object : Callback<Any> {
                 override fun onResponse(call: Call<Any>, response: Response<Any>) {}
@@ -89,8 +85,8 @@ class MainActivity : AppCompatActivity() {
             lastAttendanceTime == 0L -> startScan()
             timeSinceLast >= ATTENDANCE_COOLDOWN -> startScan()
             else -> {
-                // 아직 시간 안 지남 → Handler로 남은 시간만큼 예약
                 val remaining = ATTENDANCE_COOLDOWN - timeSinceLast
+                addLog("⏳ 남은 시간: ${remaining / 1000}초")
                 resumeHandler.postDelayed(resumeRunnable, remaining)
             }
         }
@@ -147,7 +143,8 @@ class MainActivity : AppCompatActivity() {
 
             val rssi = result.rssi
 
-            if (deviceName.contains("MiniBeacon") && rssi >= -60) {
+            // 원래값 -60 디버그용으로 그냥 -120까지 받도록 설정
+            if (deviceName.contains("MiniBeacon") && rssi >= -120) {
                 if (isProcessing) return  // 처리 중이면 무시
                 isProcessing = true
 
