@@ -14,3 +14,8 @@
 .cxx
 local.properties
 .idea/
+Application/.gradle/
+Application/.idea/
+Application/build/
+Application/app/build/
+Application/local.properties
