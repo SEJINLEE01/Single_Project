@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime
+from fastapi.responses import HTMLResponse
 import sqlite3
 import os
 
@@ -32,6 +33,7 @@ def init_db():
             password TEXT,
             device_name TEXT,
             device_address TEXT,
+            seat INTEGER,
             timestamp TEXT,
             PRIMARY KEY (id)
         )
@@ -66,6 +68,7 @@ class PhoneData(BaseModel):
     password: str
     device_name: str
     device_address: str
+    seat: int
 
 # 로그인시 확인하는 데이터
 class LoginData(BaseModel):
@@ -75,6 +78,12 @@ class LoginData(BaseModel):
 # 비콘스캔 성공시 받는 데이터 
 class CheckData(BaseModel):
     device_address: str
+
+# 대시보드 제공
+@app.get("/", response_class=HTMLResponse)
+def dashboard():
+    with open("dashboard.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 # 로그 저장 API
 @app.post("/attendance")
@@ -108,11 +117,17 @@ def ADD_Device(data: PhoneData):
     result = cursor.fetchone()
     if result:
         return {"success": 3}
+
+    # 좌석번호 확인
+    cursor.execute("SELECT * FROM Login WHERE seat=?", (data.seat,))
+    result = cursor.fetchone()
+    if result:
+        return {"success": 4}
     
     cursor.execute("""
-        INSERT OR IGNORE INTO Login (id, password, device_address, device_name, timestamp)
-        VALUES (?, ?, ?, ?, ?)
-    """, (data.id, data.password, data.device_address, data.device_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        INSERT OR IGNORE INTO Login (id, password, device_address, device_name, seat, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (data.id, data.password, data.device_address, data.device_name, data.seat, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
     # 출석 테이블에도 추가
     cursor.execute("""
@@ -167,3 +182,18 @@ def get_status(data: CheckData):
     if result is None: # 등록된 기기가 없다면
         return {"status": -1}
     return {"status": result[0]}
+
+# 좌석 정보 조회 API
+@app.get("/seats")
+def get_seats():
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT l.id, l.device_address, a.status, l.seat
+        FROM Login l
+        LEFT JOIN AttendanceStatus a ON l.device_address = a.device_address
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    seats = [{"id": r[0], "device_address": r[1], "status": r[2] or 0, "seat": r[3]} for r in rows]
+    return {"seats": seats}

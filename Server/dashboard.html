@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출석 대시보드</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  .stats {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .stat-card .num {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  .stat-card.present .num { color: #2ecc71; }
+  .stat-card.absent .num { color: #e74c3c; }
+
+  .classroom {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .board {
+    background: #4a90d9;
+    color: white;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+  }
+
+  .seat-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .seat {
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    }
+
+    /* 2. 관리자 모드 활성화 시: 사람이 있는 좌석만 손가락 모양으로 변경 */
+   body.admin-mode .seat.present, 
+   body.admin-mode .seat.empty {
+    cursor: pointer;
+    }
+
+    /* 3. 관리자 모드일 때 마우스를 올리면 살짝 강조되는 효과 (선택사항) */
+   body.admin-mode .seat.present:hover, 
+   body.admin-mode .seat.empty:hover {
+    filter: brightness(0.9);
+    transform: translateY(-2px);
+    }
+
+  body.admin-mode .seat.present:hover, 
+  body.admin-mode .seat.empty:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .seat.present {
+    background-color: #e8f5e9; /* 연한 녹색 배경 */
+    border: 2px solid #4caf50; /* 진한 녹색 테두리 */
+    color: #2e7d32;            /* 글자색도 진하게 */
+    border-top: 5px solid #4caf50; /* 상단에 굵은 녹색 바 */
+  }
+
+  .seat.present .seat-icon {
+    color: #2ecc71;
+  }
+
+  .seat.empty {
+    background-color: #ffebee; /* 연한 빨간색 배경 */
+    border: 2px solid #f44336; /* 진한 빨간색 테두리 */
+    color: #c62828;            /* 글자색도 진하게 */
+    border-top: 5px solid #f44336; /* 상단에 굵은 빨간색 바 */
+  }
+
+  .seat.empty .seat-icon {
+    color: #ccc;
+  }
+
+  .seat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .seat-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .seat-id {
+    font-size: 0.65rem;
+    color: #aaa;
+    margin-top: 2px;
+  }
+
+  .seat-num {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.6rem;
+    color: #bbb;
+  }
+  .admin-icon {
+    cursor: pointer;
+    opacity: 0.3;     /* 평소에는 아주 흐리게 해서 로고처럼 보이게 */
+    transition: all 0.3s ease;
+    }
+
+    .admin-icon:hover {
+    opacity: 1;       /* 마우스 올리면 선명하게 */
+    }
+
+    /* 관리자 로그인 상태일 때 아이콘 강조 */
+    body.admin-mode .admin-icon {
+    opacity: 1;
+    color: #4caf50;
+    filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.5));
+    }
+
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot-present { background: #4caf50; }
+  .dot-empty { background: #f44336; }
+  .dot-unassigned { background: #e0e0e0; }
+
+  .refresh-btn {
+    background: #4a90d9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .refresh-btn:hover { background: #357abd; }
+
+  .last-update {
+    font-size: 0.75rem;
+    color: #aaa;
+    text-align: center;
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>
+    📋 출석 현황 대시보드
+    <span id="adminLoginBtn" class="admin-icon" onclick="AdminChanging()" title="관리자 로그인">⚙️</span>
+  </h1>
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <div class="stats">
+      <div class="stat-card present">
+        <div class="num" id="presentCount">0</div>
+        <div class="label">출석</div>
+      </div>
+      <div class="stat-card absent">
+        <div class="num" id="absentCount">0</div>
+        <div class="label">미출석</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="totalCount">0</div>
+        <div class="label">전체</div>
+      </div>
+    </div>
+    <button class="refresh-btn" onclick="loadSeats()">새로고침</button>
+  </div>
+</header>
+
+<div class="classroom">
+  <div class="board">칠판</div>
+
+  <div class="seat-layout" id="seatLayout">
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-present"></div> 출석</div>
+    <div class="legend-item"><div class="legend-dot dot-empty"></div> 미출석</div>
+    <div class="legend-item"><div class="legend-dot dot-unassigned"></div> 미배정</div>
+  </div>
+</div>
+
+<div class="last-update" id="lastUpdate"></div>
+
+<script>
+  let isAdmin = false;
+
+  async function loadSeats() {
+    const res = await fetch('/seats');
+    const data = await res.json();
+    renderSeats(data.seats);
+  }
+
+  function AdminChanging() {
+        if(!isAdmin){
+            isAdmin = true; // 관리자 상태를 true로 변경
+            
+            //디버그용
+            alert("🔐 관리자 모드가 활성화되었습니다.\n이제 좌석을 클릭하여 관리할 수 있습니다.");
+
+            // 레이아웃 전체를 감싸는 부모 요소(layout)에 클래스를 추가합니다.
+            document.body.classList.add('admin-mode');
+            
+            // 화면을 다시 그려서 클릭 이벤트를 활성화시킵니다.
+            loadSeats(); 
+        }
+        else{
+            isAdmin=false;
+            alert("🔐 관리자 모드가 비활성화되었습니다.");
+            document.body.classList.remove('admin-mode');
+            loadSeats(); 
+        }
+    
+    }
+
+  function renderSeats(seats) {
+    const layout = document.getElementById('seatLayout');
+    layout.innerHTML = '';
+
+    let presentCount = 0;
+    let assignedCount = 0;
+
+    // 3열, 각 열에 3행, 각 행에 2자리 = 18자리
+    // seats는 [{seat, id, name, status}] 형태
+    const seatMap = {};
+    seats.forEach(s => seatMap[s.seat] = s);
+
+    for (let col = 0; col < 3; col++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'column';
+
+        for (let row = 0; row < 5; row++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+
+            const seatsInRow = (row === 4 && col === 2) ? 1 : 2;
+
+            for (let s = 0; s < seatsInRow; s++) {
+            const seatNum = (row * 6) + (col * 2) + s + 1;
+            const seat = seatMap[seatNum];
+            const div = document.createElement('div');
+
+            if (!seat) {
+                div.className = 'seat';
+                div.innerHTML = `
+                <span class="seat-num">${seatNum}</span>
+                <span class="seat-icon">🪑</span>
+                <div class="seat-name" style="color:#ccc">미배정</div>
+                `;
+            } else {
+                const isPresent = seat.status === 1;
+                if (isPresent) presentCount++;
+                assignedCount++;
+                div.className = `seat ${isPresent ? 'present' : 'empty'}`;
+                div.innerHTML = `
+                <span class="seat-num">${seatNum}</span>
+                <span class="seat-icon">🪑</span>
+                <div class="seat-name">${seat.name || seat.id}</div>
+                `;
+            }
+            rowDiv.appendChild(div);
+            }
+            colDiv.appendChild(rowDiv);
+        }
+        layout.appendChild(colDiv);
+    }
+
+    document.getElementById('presentCount').textContent = presentCount;
+    document.getElementById('absentCount').textContent = assignedCount - presentCount;
+    document.getElementById('totalCount').textContent = assignedCount;
+    document.getElementById('lastUpdate').textContent = '마지막 업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+  }
+
+  // 10초마다 자동 새로고침
+  loadSeats();
+  setInterval(loadSeats, 5000);
+</script>
+</body>
+</html>

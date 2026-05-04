@@ -51,6 +51,18 @@
         android:layout_marginBottom="12dp"
         android:textSize="15sp"/>
 
+    <!-- 본인 좌석 번호 입력 -->
+    <EditText
+        android:id="@+id/editSeat"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="좌석번호"
+        android:inputType="text"
+        android:background="@drawable/rounded_input"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:textSize="15sp"/>
 
     <!-- 회원가입 버튼 -->
     <Button

@@ -13,7 +13,8 @@ data class PhoneData(
     val id: String,
     val password: String,
     val device_name: String,
-    val device_address: String
+    val device_address: String,
+    val seat: Int
 )
 data class LoginData(
     val id: String,
