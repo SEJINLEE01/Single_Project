@@ -9,8 +9,10 @@ app = FastAPI()
 
 # DB 초기화
 def init_db():
+    # 이제 충분히 테스트 했으니 그냥 데베 남기기
     if os.path.exists("Data.db"):
         os.remove("Data.db")
+        # return
 
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
@@ -78,6 +80,11 @@ class LoginData(BaseModel):
 # 비콘스캔 성공시 받는 데이터 
 class CheckData(BaseModel):
     device_address: str
+
+# html에서 좌석 스왑하는 데이터
+class SwapData(BaseModel):
+    seat_a: int
+    seat_b: int
 
 # 대시보드 제공
 @app.get("/", response_class=HTMLResponse)
@@ -188,6 +195,10 @@ def get_status(data: CheckData):
 def get_seats():
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
+
+    cursor.execute("SELECT id, password FROM Login LIMIT 1")
+    admin = cursor.fetchone()
+
     cursor.execute("""
         SELECT l.id, l.device_address, a.status, l.seat
         FROM Login l
@@ -196,4 +207,56 @@ def get_seats():
     rows = cursor.fetchall()
     conn.close()
     seats = [{"id": r[0], "device_address": r[1], "status": r[2] or 0, "seat": r[3]} for r in rows]
-    return {"seats": seats}
+    return {"seats": seats, "admin": {"id": admin[0], "password": admin[1]}}
+
+
+@app.patch("/seats/swap")
+def swap_seats(data: SwapData):
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+
+    # 두 좌석의 id 가져오기
+    cursor.execute("SELECT id FROM Login WHERE seat=?", (data.seat_a,))
+    user_a = cursor.fetchone()
+
+    cursor.execute("SELECT id FROM Login WHERE seat=?", (data.seat_b,))
+    user_b = cursor.fetchone()
+
+    # 둘 다 없으면 실패
+    if not user_a and not user_b:
+        conn.close()
+        return {"success": False, "message": "두 좌석 모두 비어있음"}
+
+    # 스왑 (한쪽이 빈 자리여도 동작함)
+    if user_a:
+        cursor.execute("UPDATE Login SET seat=? WHERE id=?", (data.seat_b, user_a[0]))
+    if user_b:
+        cursor.execute("UPDATE Login SET seat=? WHERE id=?", (data.seat_a, user_b[0]))
+
+    conn.commit()
+    conn.close()
+    return {"success": True}
+
+# 회원 삭제
+@app.delete("/delete_member/{id}")
+def delete_member(id: str):
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    
+    # device_address 먼저 가져오기
+    cursor.execute("SELECT device_address FROM Login WHERE id=?", (id,))
+    result = cursor.fetchone()
+    if not result:
+        conn.close()
+        return {"success": False, "message": "존재하지 않는 회원"}
+    
+    device_address = result[0]
+    
+    # AttendanceStatus 먼저 삭제 (외래키 때문에)
+    cursor.execute("DELETE FROM AttendanceStatus WHERE device_address=?", (device_address,))
+    # Login 삭제
+    cursor.execute("DELETE FROM Login WHERE id=?", (id,))
+    
+    conn.commit()
+    conn.close()
+    return {"success": True}

@@ -229,6 +229,162 @@
     text-align: center;
     margin-top: 1rem;
   }
+
+  /* 모달 오버레이 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  /* 모달 카드 */
+  .modal-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 340px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    position: relative;
+    animation: modalIn 0.2s ease; /* 0.2초 동안 modalIn 재생 */
+  }
+
+  @keyframes modalIn {
+  from {                          /* 시작 상태 */
+    transform: scale(0.92);       /* 92% 크기 (약간 작게) */
+    transform: translateY(10px);  /* 10px 아래에서 */
+    opacity: 0;                   /* 투명 */
+  }
+  to {                            /* 끝 상태 */
+    transform: scale(1);          /* 100% 원래 크기 */
+    transform: translateY(0);     /* 제자리 */
+    opacity: 1;                   /* 불투명 */
+  }
+}
+
+  .modal-close {
+    position: absolute;        /* 모달 카드 기준으로 위치 고정 */
+    top: 1rem; right: 1rem;    /* 오른쪽 상단에 배치 */
+    background: #f0f2f5;       /* 연한 회색 배경 */
+    border: none;              /* 기본 버튼 테두리 제거 */
+    border-radius: 50%;        /* 원형으로 */
+    width: 32px; height: 32px; /* 크기 32x32 정사각형 → 원형 */
+    font-size: 1rem;           /* ✕ 글자 크기 */
+    cursor: pointer;           /* 마우스 올리면 손가락 */
+    display: flex;
+    align-items: center;
+    justify-content: center;   /* ✕ 글자를 버튼 정중앙에 */
+    color: #666;               /* ✕ 글자색 회색 */
+    transition: background 0.2s; /* 배경색 변할 때 0.2초 부드럽게 */
+  }
+
+  .modal-close:hover { background: #e0e0e0; }
+
+  .modal-name {
+    text-align: center;    /* 가운데 정렬 */
+    font-size: 1.2rem;     /* 글자 크게 */
+    font-weight: 700;      /* 굵게 */
+    color: #1a1a2e;        /* 진한 네이비 */
+    margin-bottom: 0.25rem;/* 아래 여백 살짝 */
+  }
+
+  .modal-badge {
+    display: block;            /* 한 줄 차지 */
+    text-align: center;        /* 가운데 정렬 */
+    padding: 0.2rem 0.75rem;   /* 위아래/좌우 여백 */
+    border-radius: 999px;      /* 완전한 캡슐 모양 */
+    font-size: 0.75rem;        /* 작은 글자 */
+    font-weight: 600;          /* 약간 굵게 */
+    margin-bottom: 1.25rem;    /* 아래 여백 */
+  }
+
+  .modal-info-wrap {
+    margin-bottom: 1rem; /* 테이블 위 여백 */
+  }
+
+  .modal-info-table {
+    width: 100%;           /* 카드 너비 꽉 채움 */
+    border-collapse: collapse; /* 셀 사이 간격 없애기 */
+    font-size: 0.875rem;   /* 글자 약간 작게 */
+    margin-bottom: 1.5rem; /* 아래 여백 */
+  }
+
+  .modal-info-table tr {
+    border-bottom: 1px solid #f0f2f5; /* 행마다 구분선 */
+  }
+
+  .modal-info-table tr:last-child {
+    border-bottom: none; /* 마지막 행은 구분선 없애기 */
+  }
+
+  .modal-info-table td {
+    padding: 0.6rem 0.25rem; /* 셀 안 여백 */
+  }
+
+  .modal-info-table td:first-child {
+    color: #999; /* 회색 */
+    font-size: 0.8rem; /* 작은 글자 */
+    width: 35%; /* 왼쪽 열 넓이 */
+  }
+
+  .modal-info-table td:last-child {
+    font-weight: 600; /* 굵게 */
+    color: #333; /* 진한 회색 */
+    text-align: right; /* 오른쪽 정렬 */
+  }
+
+  /* 닫기 버튼 */
+  .btn-cancel {
+    width: 100%;         /* 카드 너비 꽉 채움 */
+    background: #f0f2f5; /* 연한 회색 배경 */
+    color: #555;         /* 글자색 회색 */
+    border: none;        /* 테두리 없애기 */
+    border-radius: 10px; /* 살짝 둥근 모서리 */
+    padding: 0.65rem;    /* 버튼 안 여백 */
+    font-size: 0.85rem;  /* 글자 크기 */
+    cursor: pointer;     /* 손가락 커서 */
+    transition: background 0.2s; /* 호버 시 부드럽게 */
+  }
+  .btn-cancel:hover { background: #e0e0e0; }
+
+  /* 스왑버튼 */
+  .btn-swap {
+  width: 100%;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 0.5rem;
+  }
+  .btn-swap:hover { background: #357abd; }
+
+  /* 삭제버튼 */
+  .btn-delete {
+  width: 100%;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 0.5rem;
+}
+.btn-delete:hover { background: #c62828; }
+
 </style>
 </head>
 <body>
@@ -260,6 +416,11 @@
 <div class="classroom">
   <div class="board">칠판</div>
 
+  <div id="swapGuide" style="display:none; text-align:center; background:#fff3cd; color:#856404; padding:0.6rem; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;">
+    📌 옮길 자리를 클릭하세요 &nbsp;
+    <button onclick="cancelSwap()" style="background:#856404; color:white; border:none; border-radius:6px; padding:0.2rem 0.6rem; cursor:pointer; font-size:0.8rem;">취소</button>
+  </div>
+
   <div class="seat-layout" id="seatLayout">
   </div>
 
@@ -272,36 +433,118 @@
 
 <div class="last-update" id="lastUpdate"></div>
 
+<!-- 관리자 로그인 모달 -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal-card">
+    <div class="modal-name" style="margin-bottom:1.5rem;">🔐 관리자 로그인</div>
+    <table class="modal-info-table">
+      <tr>
+        <td>아이디</td>
+        <td><input id="adminId" type="text" placeholder="아이디" style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:0.4rem 0.6rem; font-size:0.85rem;"></td>
+      </tr>
+      <tr>
+        <td>비밀번호</td>
+        <td><input id="adminPw" type="password" placeholder="비밀번호" style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:0.4rem 0.6rem; font-size:0.85rem;"></td>
+      </tr>
+    </table>
+    <div id="adminLoginError" style="color:#e74c3c; font-size:0.8rem; text-align:center; margin-bottom:0.75rem;"></div>
+    <div style="display:flex; flex-direction:column; gap:0.6rem;">
+      <button class="btn-swap" onclick="checkAdminLogin()">확인</button>
+      <button class="btn-cancel" onclick="closeAdminLoginModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 알림 모달 -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal-card" style="text-align:center;">
+    <div id="alertMessage" style="font-size:1rem; font-weight:600; color:#1a1a2e; margin-bottom:1.5rem;">-</div>
+    <div style="display:flex; flex-direction:column; gap:0.6rem;">
+      <button id="alertConfirmBtn" class="btn-delete" onclick="deleteMember()">삭제</button>
+      <button id="alertCancelBtn" class="btn-cancel" onclick="closeAlertModal()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 회원 상세 정보 모달 -->
+<div class="modal-overlay" id="memberModal" onclick="closeModal(event)">
+  <div class="modal-card" id="modalCard">
+    <div class="modal-actions">
+      <button class="btn-swap" onclick="startSwap()">🔄 좌석 옮기기</button>
+      <button class="btn-delete" onclick="confirmDelete()">🗑️ 회원 삭제</button>
+    </div>
+
+    <div class="modal-info-wrap">
+      <div class="modal-name" id="modalName">-</div>
+    </div>
+
+    <table class="modal-info-table">
+      <tr>
+        <td>학번/ID</td>
+        <td id="modalId">-</td>
+      </tr>
+      <tr>
+        <td>좌석 번호</td>
+        <td id="modalSeat">-</td>
+      </tr>
+      <tr>
+        <td>출석 상태</td>
+        <td id="modalStatus">-</td>
+      </tr>
+    </table>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModalDirect()">닫기</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let isAdmin = false;
+  let swapMode = false;   // 스왑 대기 모드
+  let swapSeat = null;    // 첫번째로 선택한 좌석
+  let currentSeat = null;  // 현재 선택한 좌석
+
+  let adminCredentials = null; // 관리자 계정 저장 
 
   async function loadSeats() {
     const res = await fetch('/seats');
     const data = await res.json();
+    if(adminCredentials === null) {
+      adminCredentials = data.admin;  // 관리자 정보 저장
+    }
     renderSeats(data.seats);
   }
 
   function AdminChanging() {
         if(!isAdmin){
-            isAdmin = true; // 관리자 상태를 true로 변경
-            
-            //디버그용
-            alert("🔐 관리자 모드가 활성화되었습니다.\n이제 좌석을 클릭하여 관리할 수 있습니다.");
-
-            // 레이아웃 전체를 감싸는 부모 요소(layout)에 클래스를 추가합니다.
-            document.body.classList.add('admin-mode');
-            
-            // 화면을 다시 그려서 클릭 이벤트를 활성화시킵니다.
-            loadSeats(); 
+          document.getElementById('adminId').value = '';
+          document.getElementById('adminPw').value = '';
+          document.getElementById('adminLoginError').textContent = '';
+          document.getElementById('adminLoginModal').classList.add('active'); // ← 이게 있어야 해요
+          
         }
         else{
             isAdmin=false;
-            alert("🔐 관리자 모드가 비활성화되었습니다.");
             document.body.classList.remove('admin-mode');
             loadSeats(); 
+            showAlert('🔐 관리자 모드가 비활성화되었습니다.');
         }
     
     }
+  function checkAdminLogin() {
+      const id = document.getElementById('adminId').value;
+      const pw = document.getElementById('adminPw').value;
+
+      if (id === adminCredentials.id && pw === adminCredentials.password) {
+          isAdmin = true;
+          document.body.classList.add('admin-mode');
+          document.getElementById('adminLoginModal').classList.remove('active');
+          loadSeats();
+      } else {
+          document.getElementById('adminLoginError').textContent = '❌ 아이디 또는 비밀번호가 틀렸습니다.';
+      }
+  }
 
   function renderSeats(seats) {
     const layout = document.getElementById('seatLayout');
@@ -337,6 +580,16 @@
                 <span class="seat-icon">🪑</span>
                 <div class="seat-name" style="color:#ccc">미배정</div>
                 `;
+
+                // 스왑 대기 모드일 때 빈 자리도 클릭 가능
+                if (swapMode) {
+                    div.style.cursor = 'pointer';
+                    div.addEventListener('click', () => {
+                        if (confirm(`${swapSeat.name || swapSeat.id} → ${seatNum}번으로 이동할까요?`)) {
+                            doSwap({ seat: seatNum });
+                        }
+                    });
+                }
             } else {
                 const isPresent = seat.status === 1;
                 if (isPresent) presentCount++;
@@ -347,6 +600,23 @@
                 <span class="seat-icon">🪑</span>
                 <div class="seat-name">${seat.name || seat.id}</div>
                 `;
+                
+                if (swapMode) {
+                    if (seat.seat !== swapSeat.seat) {
+                        // 다른 자리 클릭 → 스왑
+                        div.addEventListener('click', () => {
+                            if (confirm(`${swapSeat.name || swapSeat.id} ↔ ${seat.name || seat.id} 자리를 바꿀까요?`)) {
+                                doSwap(seat);
+                            }
+                        });
+                    } else {
+                        // 자기 자신 좌석 강조
+                        div.style.outline = '3px solid #4a90d9';
+                    }
+                }
+                else if (isAdmin) {
+                    div.addEventListener('click', () => openModal(seat)); // 이미 받아온 seat 객체 그대로 넘김
+                }
             }
             rowDiv.appendChild(div);
             }
@@ -361,9 +631,106 @@
     document.getElementById('lastUpdate').textContent = '마지막 업데이트: ' + new Date().toLocaleTimeString('ko-KR');
   }
 
-  // 10초마다 자동 새로고침
+  // 관리자 모드 모달 관련
+  function openModal(seat) {
+    currentSeat = seat; 
+    const isPresent = seat.status === 1;
+
+    document.getElementById('modalName').textContent = seat.name || seat.id;
+    document.getElementById('modalId').textContent = seat.id;
+    document.getElementById('modalSeat').textContent = seat.seat + '번';
+    document.getElementById('modalStatus').textContent = isPresent ? '✅ 출석' : '❌ 미출석';
+
+    document.getElementById('memberModal').classList.add('active');
+  }
+
+  function closeModal(event) {
+    // 모달 오버레이 클릭 시에만 닫기
+    if (event.target === document.getElementById('memberModal')) {
+      closeModalDirect();
+    }
+  }
+
+  function closeModalDirect() {
+    document.getElementById('memberModal').classList.remove('active');
+  }
+
+  // 좌석 옮기기 모드 관련
+  function startSwap() {
+    swapMode = true;
+    swapSeat = currentSeat;   // 첫번째 선택 좌석 저장
+    closeModalDirect();
+    document.getElementById('swapGuide').style.display = 'block';
+    loadSeats();   // 빈 자리도 클릭 가능하게 다시 그리기
+  }
+
+  function cancelSwap() {
+    swapMode = false;
+    swapSeat = null;
+    document.getElementById('swapGuide').style.display = 'none';
+    loadSeats();
+  }
+
+  // 관리자 모달 관련
+  function closeAdminLoginModal() {
+    document.getElementById('adminLoginModal').classList.remove('active');
+  }
+
+  function confirmDelete() {
+    closeModalDirect();
+    showAlert(`⚠️ ${currentSeat.name || currentSeat.id}을(를) 삭제할까요?`, true);
+  }
+
+  async function deleteMember() {
+      const res = await fetch(`/delete_member/${currentSeat.id}`, {
+          method: 'DELETE'
+      });
+      const data = await res.json();
+
+      if (data.success) {
+          closeAlertModal();
+          loadSeats();
+          showAlert('✅ 삭제되었습니다.');
+      } else {
+          showAlert('⚠️ 삭제 실패: ' + data.message);
+      }
+  }
+
+  function showAlert(message, isConfirm = false) {
+      document.getElementById('alertMessage').textContent = message;
+      document.getElementById('alertConfirmBtn').style.display = isConfirm ? 'block' : 'none'; // ← 이게 매번 실행되어야 함
+      document.getElementById('alertCancelBtn').textContent = isConfirm ? '취소' : '확인';
+      document.getElementById('alertModal').classList.add('active');
+  }
+
+  function closeAlertModal() {
+      document.getElementById('alertModal').classList.remove('active');
+  }
+
+  // 좌석 옮기기 함수 
+  async function doSwap(targetSeat) {
+    const res = await fetch('/seats/swap', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seat_a: swapSeat.seat, seat_b: targetSeat.seat ?? targetSeat })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      cancelSwap();
+      loadSeats();
+    } else {
+      alert('⚠️ 좌석 변경 실패: ' + data.message);
+    }
+  }
+
+  document.getElementById('adminPw').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') checkAdminLogin();
+  });
+
+  // 5초마다 자동 새로고침
   loadSeats();
-  setInterval(loadSeats, 5000);
+  setInterval(loadSeats, 5000);  
 </script>
 </body>
 </html>
