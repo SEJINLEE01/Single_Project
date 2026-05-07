@@ -3,6 +3,7 @@ package com.example.beaconattendance
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.GET
 
 // 서버로 보내는 데이터
 data class LogData(
@@ -53,4 +54,7 @@ interface AttendanceApi {
 
     @POST("status")
     fun getStatus(@Body data: Check): Call<StatusResponse>
+
+    @GET("settings")
+    fun getSettings(): Call<Map<String, String>>
 }

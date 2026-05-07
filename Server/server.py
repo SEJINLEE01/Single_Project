@@ -16,7 +16,15 @@ def init_db():
 
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
-    
+
+    # 세팅 값 저장 테이블 
+    cursor.execute("""
+    CREATE TABLE Settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )
+    """)
+
     # 로그 저장 테이블
     cursor.execute("""
         CREATE TABLE Log (
@@ -57,7 +65,20 @@ def init_db():
     conn.commit()
     conn.close()
 
+# 세팅 값 설정
+def Setting():
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("INSERT INTO Setting (key, value) VALUES (?, ?)",("checkout_time","17:50"))
+    cursor.execute("INSERT INTO Setting (key, value) VALUES (?, ?)",("checkin_time","9:00"))
+    cursor.execute("INSERT INTO Setting (key, value) VALUES (?, ?)",("total_seats","29"))
+    
+    conn.commit()
+    conn.close()
+  
 init_db()
+Setting()
 
 # 출석 데이터 모델
 class LogData(BaseModel):
@@ -92,6 +113,19 @@ def dashboard():
     with open("dashboard.html", "r", encoding="utf-8") as f:
         return f.read()
 
+# 세팅 값 보내기 
+@app.get("/settings")
+def get_settings():
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM Settings")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    # {"checkout_time": "17:50", "total_seats": "29"} 형태로 변환
+    settings = {row[0]: row[1] for row in rows}
+    return settings
+    
 # 로그 저장 API
 @app.post("/attendance")
 def save_attendance(data: LogData):
@@ -104,7 +138,6 @@ def save_attendance(data: LogData):
     conn.commit()
     conn.close()
     return {"status": data.action, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-
 
 # 폰 등록 API(회원가입)
 # 성공 -> 1, 기기 중복 -> 2, id 중복 -> 3

@@ -23,6 +23,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import android.content.Intent
+import java.util.Calendar
 
 
 class MainActivity : AppCompatActivity() {
@@ -41,6 +42,10 @@ class MainActivity : AppCompatActivity() {
     private var lastAttendanceTime: Long = 0
     private val ATTENDANCE_COOLDOWN = 30 * 1000L // 30초
 
+    private var InTimeHour : Int = 0
+    private var InTimeMinute : Int = 0
+    private var OutTimeHour : Int = 0
+    private var OutTimeMinute : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +56,14 @@ class MainActivity : AppCompatActivity() {
         checkData = Check(device_address = android.provider.Settings.Secure.getString(
             contentResolver,
             android.provider.Settings.Secure.ANDROID_ID))
+
+        var result = RetrofitClient.GetCheckInTime()
+        InTimeHour = result.first
+        InTimeMinute = result.second
+
+        result = RetrofitClient.GetCheckOutTime()
+        OutTimeHour = result.first
+        OutTimeMinute = result.second
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
@@ -149,27 +162,39 @@ class MainActivity : AppCompatActivity() {
                 isProcessing = true
 
                 val currentTime = System.currentTimeMillis()
-                val timeSinceLast = currentTime - lastAttendanceTime
 
-                if (lastAttendanceTime != 0L && timeSinceLast < ATTENDANCE_COOLDOWN) {
-                    isProcessing = false
-                    return
-                }
+                val calendar = Calendar.getInstance()
+                val currentTotal = calendar.get(Calendar.HOUR_OF_DAY)*60 + calendar.get(Calendar.MINUTE)
+                val inTimeTotal = InTimeHour * 60 + InTimeMinute + 20  // 등원 시간 + 20분
+                // val OutTimeTotal = OutTimeHour * 60 + OutTimeMinute
 
                 RetrofitClient.api.getStatus(checkData).enqueue(object : Callback<StatusResponse> {
                     override fun onResponse(call: Call<StatusResponse>, response: Response<StatusResponse>) {
                         val status = response.body()?.status
                         if (status == 0) {
-                            // 퇴실 상태 → 출석 처리
-                            sendAttendance("attendance")
-
+                            if (currentTotal < 8 * 60) {
+                                // 8시 이전 → 출석 안됨
+                                addLog("⚠️ 아직 출석 시간이 아닙니다.")
+                                isProcessing = false
+                                return
+                            }
                             lastAttendanceTime = currentTime
 
                             //마지막 시간으로 저장
                             getSharedPreferences("AttendanceTime", MODE_PRIVATE)
-                                .edit().putLong("lastAttendanceTime", lastAttendanceTime).apply()
+                                .edit().putLong("lastAttendanceTime", lastAttendanceTime)
+                                .apply()
+                            // 퇴실 상태 → 출석 처리
+                            // 지각처리
+                            if(currentTotal <= inTimeTotal)  {
+                                sendAttendance("attendance")
+                                addLog("✅ 출석 처리")
+                            }
+                            else {
+                                sendAttendance("Tardy") // 지각 로그
+                                addLog("⚠️ 지각 처리")
+                            }
 
-                            addLog("✅ 출석 처리")
                         } else {
                             // 출석 상태 → 퇴실 처리
                             sendAttendance("checkout")
@@ -182,7 +207,6 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         // 시간이 지난뒤 정상적으로 스캔이된다면 실행
-
                         stopScan()
                         resumeHandler.postDelayed(resumeRunnable, ATTENDANCE_COOLDOWN)
                     }

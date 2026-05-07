@@ -40,9 +40,18 @@ class RegisterActivity : AppCompatActivity() {
             // 영문 대소문자, 숫자, 그리고 주요 특수문자들만 허용
             val idFilter = "^[a-zA-Z0-9!@#\\$%\\^&*()\\-_=+\\[\\]{}|;':\",./<>?]*$".toRegex()
 
+
             // 다른 언어가 들어올 경우
             if (!id.matches(idFilter)) {
                 Toast.makeText(this, "아이디 형식이 올바르지 않습니다.\\n영문, 숫자, 특수기호만 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // 범위를 벗어날 경우
+            val seatNum = seat.toIntOrNull()
+            val totalSeat = RetrofitClient.GetTotalSeat()
+            if (seatNum == null || seatNum < 1 || seatNum > totalSeat) {
+                Toast.makeText(this, "좌석 번호는 1~${totalSeat} 사이의 숫자만 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -52,7 +61,7 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 비어있으면 막
+            // 비어있으면 막기
             if (seat.isEmpty()){
                 Toast.makeText(this, "좌석 번호를 입력해주세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

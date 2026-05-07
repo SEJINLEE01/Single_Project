@@ -521,7 +521,7 @@
           document.getElementById('adminId').value = '';
           document.getElementById('adminPw').value = '';
           document.getElementById('adminLoginError').textContent = '';
-          document.getElementById('adminLoginModal').classList.add('active'); // ← 이게 있어야 해요
+          document.getElementById('adminLoginModal').classList.add('active'); 
           
         }
         else{
@@ -553,20 +553,23 @@
     let presentCount = 0;
     let assignedCount = 0;
 
+    let total_col = 3
+    let total_row = 5
     // 3열, 각 열에 3행, 각 행에 2자리 = 18자리
     // seats는 [{seat, id, name, status}] 형태
+
     const seatMap = {};
     seats.forEach(s => seatMap[s.seat] = s);
 
-    for (let col = 0; col < 3; col++) {
+    for (let col = 0; col < total_col; col++) {
         const colDiv = document.createElement('div');
         colDiv.className = 'column';
 
-        for (let row = 0; row < 5; row++) {
+        for (let row = 0; row < total_row; row++) {
             const rowDiv = document.createElement('div');
             rowDiv.className = 'row';
 
-            const seatsInRow = (row === 4 && col === 2) ? 1 : 2;
+            const seatsInRow = (row === total_row-1 && col === total_col-1) ? 1 : 2;
 
             for (let s = 0; s < seatsInRow; s++) {
             const seatNum = (row * 6) + (col * 2) + s + 1;
