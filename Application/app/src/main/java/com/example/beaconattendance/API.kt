@@ -36,7 +36,8 @@ data class RegisterResponse(
 )
 
 data class StatusResponse(
-    val status: Int
+    val status: Int,
+    val today: Int
 )
 
 interface AttendanceApi {

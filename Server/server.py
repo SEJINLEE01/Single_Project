@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime
 from fastapi.responses import HTMLResponse
+from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
 import os
 
@@ -55,12 +56,17 @@ def init_db():
         CREATE TABLE AttendanceStatus (
             device_address TEXT PRIMARY KEY,
             status INTEGER DEFAULT 0,
+            today_attendance INTEGER DEFAULT 0,
             FOREIGN KEY (device_address) REFERENCES Login(device_address)
         )
     """)
 
     # 관리자 계정 생성
     cursor.execute("INSERT INTO Login (id, password) VALUES (?, ?)", ("admin", "1234"))
+
+    # 하루 지나면 값초기화되는지 테스트
+    cursor.execute("INSERT INTO AttendanceStatus (device_address,status,today_attendance) VALUES (?,0,1)", ("test",))
+
     
     conn.commit()
     conn.close()
@@ -70,13 +76,24 @@ def Setting():
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
     
-    cursor.execute("INSERT INTO Setting (key, value) VALUES (?, ?)",("checkout_time","17:50"))
-    cursor.execute("INSERT INTO Setting (key, value) VALUES (?, ?)",("checkin_time","9:00"))
-    cursor.execute("INSERT INTO Setting (key, value) VALUES (?, ?)",("total_seats","29"))
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkout_time","17:50"))
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkin_time","9:00"))
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("total_seats","29"))
     
     conn.commit()
     conn.close()
-  
+
+def reset_today_attendance():
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE AttendanceStatus SET today_attendance=0")
+    conn.commit()
+    conn.close()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(reset_today_attendance, 'cron', hour=0, minute=0)  # 자정마다 실행
+scheduler.start() # 자정마다 오늘 출석했다는 상태 초기화
+
 init_db()
 Setting()
 
@@ -203,7 +220,7 @@ def check(data: CheckData):
     cursor.execute("SELECT status FROM AttendanceStatus WHERE device_address=?", (data.device_address,))
     result = cursor.fetchone() # 튜플형태로 저장됨 (0,) 또는 (1,)
     if result[0] == 0: # 출석
-        cursor.execute("UPDATE AttendanceStatus SET status=1 WHERE device_address=?", (data.device_address,))
+        cursor.execute("UPDATE AttendanceStatus SET status=1, today_attendance=1 WHERE device_address=?", (data.device_address,))
     elif result[0] == 1: # 퇴실
         cursor.execute("UPDATE AttendanceStatus SET status=0 WHERE device_address=?", (data.device_address,))
 
@@ -216,12 +233,12 @@ def check(data: CheckData):
 def get_status(data: CheckData):
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT status FROM AttendanceStatus WHERE device_address=?", (data.device_address,))
+    cursor.execute("SELECT status, today_attendance FROM AttendanceStatus WHERE device_address=?", (data.device_address,))
     result = cursor.fetchone()
     conn.close()
     if result is None: # 등록된 기기가 없다면
         return {"status": -1}
-    return {"status": result[0]}
+    return {"status": result[0], "today_attendance": result[1]}
 
 # 좌석 정보 조회 API
 @app.get("/seats")

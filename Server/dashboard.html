@@ -73,7 +73,6 @@
 
   .seat-layout {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
   }
 
@@ -393,6 +392,7 @@
   <h1>
     📋 출석 현황 대시보드
     <span id="adminLoginBtn" class="admin-icon" onclick="AdminChanging()" title="관리자 로그인">⚙️</span>
+    <span id="settingBtn" class="admin-icon" onclick="openSettingModal()" title="세팅" style="display:none;">🔧</span>
   </h1>
   <div style="display:flex; align-items:center; gap:1rem;">
     <div class="stats">
@@ -499,6 +499,31 @@
   </div>
 </div>
 
+<!-- 세팅 모달 -->
+<div class="modal-overlay" id="settingModal">
+  <div class="modal-card">
+    <div class="modal-name" style="margin-bottom:1.5rem;">🔧 좌석 세팅</div>
+    <table class="modal-info-table">
+      <tr>
+        <td>열 수</td>
+        <td><input id="settingCol" type="number" min="1" value="3" style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:0.4rem 0.6rem; font-size:0.85rem;"></td>
+      </tr>
+      <tr>
+        <td>행 수</td>
+        <td><input id="settingRow" type="number" min="1" value="5" style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:0.4rem 0.6rem; font-size:0.85rem;"></td>
+      </tr>
+      <tr>
+        <td>행당 좌석 수</td>
+        <td><input id="settingSeatsInRow" type="number" min="1" value="2" style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:0.4rem 0.6rem; font-size:0.85rem;"></td>
+      </tr>
+    </table>
+    <div style="display:flex; flex-direction:column; gap:0.6rem;">
+      <button class="btn-swap" onclick="applySettings()">적용</button>
+      <button class="btn-cancel" onclick="closeSettingModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let isAdmin = false;
   let swapMode = false;   // 스왑 대기 모드
@@ -506,6 +531,10 @@
   let currentSeat = null;  // 현재 선택한 좌석
 
   let adminCredentials = null; // 관리자 계정 저장 
+
+  let total_col = 3 // 총 열 수
+  let total_row = 5 // 총 행 수
+  let seatsInRow =  2; // 각 행에 있는 좌석 수 (기본값)
 
   async function loadSeats() {
     const res = await fetch('/seats');
@@ -522,16 +551,17 @@
           document.getElementById('adminPw').value = '';
           document.getElementById('adminLoginError').textContent = '';
           document.getElementById('adminLoginModal').classList.add('active'); 
-          
         }
         else{
             isAdmin=false;
             document.body.classList.remove('admin-mode');
+
+            document.getElementById('settingBtn').style.display = 'none'; // 세팅 아이콘 숨기기
             loadSeats(); 
             showAlert('🔐 관리자 모드가 비활성화되었습니다.');
         }
     
-    }
+  }
   function checkAdminLogin() {
       const id = document.getElementById('adminId').value;
       const pw = document.getElementById('adminPw').value;
@@ -540,6 +570,8 @@
           isAdmin = true;
           document.body.classList.add('admin-mode');
           document.getElementById('adminLoginModal').classList.remove('active');
+
+          document.getElementById('settingBtn').style.display = 'inline'; // 세팅 아이콘 띄우기
           loadSeats();
       } else {
           document.getElementById('adminLoginError').textContent = '❌ 아이디 또는 비밀번호가 틀렸습니다.';
@@ -549,13 +581,12 @@
   function renderSeats(seats) {
     const layout = document.getElementById('seatLayout');
     layout.innerHTML = '';
-
+    
     let presentCount = 0;
     let assignedCount = 0;
 
-    let total_col = 3
-    let total_row = 5
-    // 3열, 각 열에 3행, 각 행에 2자리 = 18자리
+    layout.style.gridTemplateColumns = `repeat(${total_col}, 1fr)`;  // 동적으로 열 맞추기
+
     // seats는 [{seat, id, name, status}] 형태
 
     const seatMap = {};
@@ -568,11 +599,10 @@
         for (let row = 0; row < total_row; row++) {
             const rowDiv = document.createElement('div');
             rowDiv.className = 'row';
-
-            const seatsInRow = (row === total_row-1 && col === total_col-1) ? 1 : 2;
+            rowDiv.style.gridTemplateColumns = `repeat(${seatsInRow}, 1fr)`; // 동적으로 행에 좌석 넣기
 
             for (let s = 0; s < seatsInRow; s++) {
-            const seatNum = (row * 6) + (col * 2) + s + 1;
+            const seatNum = (row * total_col * seatsInRow) + (col * seatsInRow) + s + 1;
             const seat = seatMap[seatNum];
             const div = document.createElement('div');
 
@@ -725,6 +755,25 @@
     } else {
       alert('⚠️ 좌석 변경 실패: ' + data.message);
     }
+  }
+
+  function openSettingModal() {
+    document.getElementById('settingCol').value = total_col;
+    document.getElementById('settingRow').value = total_row;
+    document.getElementById('settingSeatsInRow').value = seatsInRow;
+    document.getElementById('settingModal').classList.add('active');
+  }
+
+  function closeSettingModal() {
+      document.getElementById('settingModal').classList.remove('active');
+  }
+
+  function applySettings() {
+      total_col = parseInt(document.getElementById('settingCol').value);
+      total_row = parseInt(document.getElementById('settingRow').value);
+      seatsInRow = parseInt(document.getElementById('settingSeatsInRow').value);
+      closeSettingModal();
+      loadSeats();
   }
 
   document.getElementById('adminPw').addEventListener('keydown', (e) => {

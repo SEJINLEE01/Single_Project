@@ -42,10 +42,8 @@ class MainActivity : AppCompatActivity() {
     private var lastAttendanceTime: Long = 0
     private val ATTENDANCE_COOLDOWN = 30 * 1000L // 30초
 
-    private var InTimeHour : Int = 0
-    private var InTimeMinute : Int = 0
-    private var OutTimeHour : Int = 0
-    private var OutTimeMinute : Int = 0
+    var inTimeTotal = 0 //입실시간
+    var OutTimeTotal = 0 // 퇴실 시간
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,12 +56,10 @@ class MainActivity : AppCompatActivity() {
             android.provider.Settings.Secure.ANDROID_ID))
 
         var result = RetrofitClient.GetCheckInTime()
-        InTimeHour = result.first
-        InTimeMinute = result.second
+        inTimeTotal = result.first * 60 + result.second + 20  // 입실 시간 + 20분
 
         result = RetrofitClient.GetCheckOutTime()
-        OutTimeHour = result.first
-        OutTimeMinute = result.second
+        OutTimeTotal = result.first * 60 + result.second // 퇴실 시간
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
@@ -165,19 +161,26 @@ class MainActivity : AppCompatActivity() {
 
                 val calendar = Calendar.getInstance()
                 val currentTotal = calendar.get(Calendar.HOUR_OF_DAY)*60 + calendar.get(Calendar.MINUTE)
-                val inTimeTotal = InTimeHour * 60 + InTimeMinute + 20  // 등원 시간 + 20분
-                // val OutTimeTotal = OutTimeHour * 60 + OutTimeMinute
+
 
                 RetrofitClient.api.getStatus(checkData).enqueue(object : Callback<StatusResponse> {
                     override fun onResponse(call: Call<StatusResponse>, response: Response<StatusResponse>) {
                         val status = response.body()?.status
-                        if (status == 0) {
+                        val today = response.body()?.today
+                        if (status == 0 && today != 1) {
                             if (currentTotal < 8 * 60) {
                                 // 8시 이전 → 출석 안됨
                                 addLog("⚠️ 아직 출석 시간이 아닙니다.")
                                 isProcessing = false
                                 return
                             }
+                            if (currentTotal > OutTimeTotal) {
+                                // 퇴실시간 이후 -> 출석시간 이미 지남
+                                addLog("⚠️ 출석시간이 아닙니다.")
+                                isProcessing = false
+                                return
+                            }
+
                             lastAttendanceTime = currentTime
 
                             //마지막 시간으로 저장
@@ -195,15 +198,31 @@ class MainActivity : AppCompatActivity() {
                                 addLog("⚠️ 지각 처리")
                             }
 
-                        } else {
+                        } else if(status==1) {
                             // 출석 상태 → 퇴실 처리
-                            sendAttendance("checkout")
-
-                            lastAttendanceTime = currentTime  // 0L이 아니라 현재 시간 저장!
+                            if(OutTimeTotal<currentTotal){
+                                runOnUiThread {
+                                    androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                                        .setTitle("퇴실 확인")
+                                        .setMessage("아직 퇴실 시간이 아닙니다. 퇴실하시겠습니까?")
+                                        .setPositiveButton("확인") { _, _ ->
+                                            sendAttendance("leave_early")
+                                            addLog("조퇴 처리")
+                                        }
+                                        .setNegativeButton("취소") { _, _ ->
+                                            isProcessing = false
+                                            startScan()
+                                        }
+                                        .show()
+                                }
+                            }
+                            else{
+                                sendAttendance("checkout")
+                                addLog("👋 퇴실 처리")
+                            }
+                            lastAttendanceTime = currentTime
                             getSharedPreferences("AttendanceTime", MODE_PRIVATE)
                                 .edit().putLong("lastAttendanceTime", currentTime).apply()
-
-                            addLog("👋 퇴실 처리")
                         }
 
                         // 시간이 지난뒤 정상적으로 스캔이된다면 실행
