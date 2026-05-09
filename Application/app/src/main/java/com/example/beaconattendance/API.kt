@@ -40,22 +40,37 @@ data class StatusResponse(
     val today: Int
 )
 
+data class StatData(
+    val device_address: String,
+    val action: String
+)
+
 interface AttendanceApi {
+    // 출석 기록 저장
     @POST("attendance")
     fun saveAttendance(@Body data: LogData): Call<Any>
 
+    // 기기 등록
     @POST("Add_Device")
     fun register(@Body data: PhoneData): Call<RegisterResponse>
 
+    // 로그인
     @POST("login")
     fun login(@Body data: LoginData): Call<LoginResponse>
 
+    // 출석 체크
     @POST("check")
     fun check(@Body data: Check): Call<Any>
 
+    // 상태 확인
     @POST("status")
     fun getStatus(@Body data: Check): Call<StatusResponse>
 
+    // 통계 업데이트
+    @POST("statistics")
+    fun updateStatistics(@Body data: StatData): Call<Any>
+
+    // 설정 가져오기
     @GET("settings")
     fun getSettings(): Call<Map<String, String>>
 }

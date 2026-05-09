@@ -60,6 +60,18 @@ def init_db():
             FOREIGN KEY (device_address) REFERENCES Login(device_address)
         )
     """)
+    
+    # 출석횟수, 지각횟수, 조퇴횟수, 결석횟수
+    cursor.execute("""
+        CREATE TABLE AttendanceStatistics (
+            device_address TEXT PRIMARY KEY,
+            attendance_count INTEGER DEFAULT 0,  
+            late_count INTEGER DEFAULT 0,           
+            early_leave_count INTEGER DEFAULT 0,    
+            absence_count INTEGER DEFAULT 0,        
+            FOREIGN KEY (device_address) REFERENCES Login(device_address)
+        )
+    """)
 
     # 관리자 계정 생성
     cursor.execute("INSERT INTO Login (id, password) VALUES (?, ?)", ("admin", "1234"))
@@ -87,6 +99,15 @@ def reset_today_attendance():
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
     cursor.execute("UPDATE AttendanceStatus SET today_attendance=0")
+
+    cursor.execute("""
+        UPDATE AttendanceStatistics 
+        SET absence_count = absence_count + 1
+        WHERE device_address IN (
+            SELECT device_address FROM AttendanceStatus WHERE today_attendance = 0
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -123,6 +144,11 @@ class CheckData(BaseModel):
 class SwapData(BaseModel):
     seat_a: int
     seat_b: int
+
+# 출석 통계 데이터
+class StatData(BaseModel):
+    device_address: str
+    action: str  # "attendance", "late", "early_leave"
 
 # 대시보드 제공
 @app.get("/", response_class=HTMLResponse)
@@ -192,6 +218,12 @@ def ADD_Device(data: PhoneData):
         VALUES (?)
     """, (data.device_address,))
     
+    # 출석 통계 테이블에도 추가
+    cursor.execute("""
+        INSERT OR IGNORE INTO AttendanceStatistics (device_address)
+        VALUES (?)
+    """, (data.device_address,))
+    
     conn.commit()
     conn.close()
     return {"success": 1}
@@ -229,6 +261,7 @@ def check(data: CheckData):
     
     return {"success": True}
 
+# 출석 상태 조회
 @app.post("/status")
 def get_status(data: CheckData):
     conn = sqlite3.connect("Data.db")
@@ -239,6 +272,26 @@ def get_status(data: CheckData):
     if result is None: # 등록된 기기가 없다면
         return {"status": -1}
     return {"status": result[0], "today_attendance": result[1]}
+
+# 출석 통계 업데이트
+@app.post("/statistics")
+def update_statistics(data: StatData):
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    
+    action_map = {
+        "attendance": "attendance_count",
+        "late": "late_count",
+        "early_leave": "early_leave_count"
+    }
+
+    column = action_map.get(data.action)
+    if column:
+        cursor.execute(f"UPDATE AttendanceStatistics SET {column} = {column} + 1 WHERE device_address=?", (data.device_address,))
+    
+    conn.commit()
+    conn.close()
+    return {"success": True}
 
 # 좌석 정보 조회 API
 @app.get("/seats")

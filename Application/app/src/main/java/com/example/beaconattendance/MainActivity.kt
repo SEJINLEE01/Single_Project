@@ -194,18 +194,27 @@ class MainActivity : AppCompatActivity() {
                                 addLog("✅ 출석 처리")
                             }
                             else {
+                                RetrofitClient.api.updateStatistics(StatData(checkData.device_address, "late")).enqueue(object : Callback<Any> {
+                                    override fun onResponse(call: Call<Any>, response: Response<Any>) {}
+                                    override fun onFailure(call: Call<Any>, t: Throwable) {}
+                                })
                                 sendAttendance("Tardy") // 지각 로그
                                 addLog("⚠️ 지각 처리")
                             }
 
                         } else if(status==1) {
                             // 출석 상태 → 퇴실 처리
-                            if(OutTimeTotal<currentTotal){
+                            if(currentTotal<OutTimeTotal){
                                 runOnUiThread {
                                     androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                                         .setTitle("퇴실 확인")
                                         .setMessage("아직 퇴실 시간이 아닙니다. 퇴실하시겠습니까?")
                                         .setPositiveButton("확인") { _, _ ->
+                                            RetrofitClient.api.updateStatistics(StatData(checkData.device_address, "early_leave")).enqueue(object : Callback<Any> {
+                                                override fun onResponse(call: Call<Any>, response: Response<Any>) {}
+                                                override fun onFailure(call: Call<Any>, t: Throwable) {}
+                                            })
+
                                             sendAttendance("leave_early")
                                             addLog("조퇴 처리")
                                         }
@@ -217,6 +226,11 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                             else{
+                                RetrofitClient.api.updateStatistics(StatData(checkData.device_address, "attendance")).enqueue(object : Callback<Any> {
+                                    override fun onResponse(call: Call<Any>, response: Response<Any>) {}
+                                    override fun onFailure(call: Call<Any>, t: Throwable) {}
+                                })
+
                                 sendAttendance("checkout")
                                 addLog("👋 퇴실 처리")
                             }
