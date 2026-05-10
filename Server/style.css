@@ -1,0 +1,415 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  .stats {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .stat-card .num {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  .stat-card.present .num { color: #2ecc71; }
+  .stat-card.absent .num { color: #e74c3c; }
+
+  .classroom {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .board {
+    background: #4a90d9;
+    color: white;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+  }
+
+  .seat-layout {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .seat {
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    }
+
+    /* 2. 관리자 모드 활성화 시: 사람이 있는 좌석만 손가락 모양으로 변경 */
+   body.admin-mode .seat.present, 
+   body.admin-mode .seat.empty {
+    cursor: pointer;
+    }
+
+    /* 3. 관리자 모드일 때 마우스를 올리면 살짝 강조되는 효과 */
+   body.admin-mode .seat.present:hover, 
+   body.admin-mode .seat.empty:hover {
+    filter: brightness(0.9);
+    transform: translateY(-2px);
+    }
+
+  body.admin-mode .seat.present:hover, 
+  body.admin-mode .seat.empty:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .seat.present {
+    background-color: #e8f5e9; /* 연한 녹색 배경 */
+    border: 2px solid #4caf50; /* 진한 녹색 테두리 */
+    color: #2e7d32;            /* 글자색도 진하게 */
+    border-top: 5px solid #4caf50; /* 상단에 굵은 녹색 바 */
+  }
+
+  .seat.present .seat-icon {
+    color: #2ecc71;
+  }
+
+  .seat.empty {
+    background-color: #ffebee; /* 연한 빨간색 배경 */
+    border: 2px solid #f44336; /* 진한 빨간색 테두리 */
+    color: #c62828;            /* 글자색도 진하게 */
+    border-top: 5px solid #f44336; /* 상단에 굵은 빨간색 바 */
+  }
+
+  .seat.empty .seat-icon {
+    color: #ccc;
+  }
+
+  .seat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .seat-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .seat-id {
+    font-size: 0.65rem;
+    color: #aaa;
+    margin-top: 2px;
+  }
+
+  .seat-num {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.6rem;
+    color: #bbb;
+  }
+  .admin-icon {
+    cursor: pointer;
+    opacity: 0.3;     /* 평소에는 아주 흐리게 해서 로고처럼 보이게 */
+    transition: all 0.3s ease;
+    margin-right: 8px;
+    }
+
+    .admin-icon:hover {
+    opacity: 1;       /* 마우스 올리면 선명하게 */
+    }
+
+    /* 관리자 로그인 상태일 때 아이콘 강조 */
+    body.admin-mode .admin-icon {
+    opacity: 1;
+    color: #4caf50;
+    filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.5));
+    }
+
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot-present { background: #4caf50; }
+  .dot-empty { background: #f44336; }
+  .dot-unassigned { background: #e0e0e0; }
+
+  .refresh-btn {
+    background: #4a90d9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .refresh-btn:hover { background: #357abd; }
+
+  .last-update {
+    font-size: 0.75rem;
+    color: #aaa;
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  /* 모달 오버레이 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  /* 모달 카드 */
+  .modal-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 340px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    position: relative;
+    animation: modalIn 0.2s ease; /* 0.2초 동안 modalIn 재생 */
+  }
+
+  @keyframes modalIn {
+  from {                          /* 시작 상태 */
+    transform: scale(0.92);       /* 92% 크기 (약간 작게) */
+    transform: translateY(10px);  /* 10px 아래에서 */
+    opacity: 0;                   /* 투명 */
+  }
+  to {                            /* 끝 상태 */
+    transform: scale(1);          /* 100% 원래 크기 */
+    transform: translateY(0);     /* 제자리 */
+    opacity: 1;                   /* 불투명 */
+  }
+}
+
+  .modal-close {
+    position: absolute;        /* 모달 카드 기준으로 위치 고정 */
+    top: 1rem; right: 1rem;    /* 오른쪽 상단에 배치 */
+    background: #f0f2f5;       /* 연한 회색 배경 */
+    border: none;              /* 기본 버튼 테두리 제거 */
+    border-radius: 50%;        /* 원형으로 */
+    width: 32px; height: 32px; /* 크기 32x32 정사각형 → 원형 */
+    font-size: 1rem;           /* ✕ 글자 크기 */
+    cursor: pointer;           /* 마우스 올리면 손가락 */
+    display: flex;
+    align-items: center;
+    justify-content: center;   /* ✕ 글자를 버튼 정중앙에 */
+    color: #666;               /* ✕ 글자색 회색 */
+    transition: background 0.2s; /* 배경색 변할 때 0.2초 부드럽게 */
+  }
+
+  .modal-close:hover { background: #e0e0e0; }
+
+  .modal-name {
+    text-align: center;    /* 가운데 정렬 */
+    font-size: 1.2rem;     /* 글자 크게 */
+    font-weight: 700;      /* 굵게 */
+    color: #1a1a2e;        /* 진한 네이비 */
+    margin-bottom: 0.25rem;/* 아래 여백 살짝 */
+  }
+
+  .modal-badge {
+    display: block;            /* 한 줄 차지 */
+    text-align: center;        /* 가운데 정렬 */
+    padding: 0.2rem 0.75rem;   /* 위아래/좌우 여백 */
+    border-radius: 999px;      /* 완전한 캡슐 모양 */
+    font-size: 0.75rem;        /* 작은 글자 */
+    font-weight: 600;          /* 약간 굵게 */
+    margin-bottom: 1.25rem;    /* 아래 여백 */
+  }
+
+  .modal-info-wrap {
+    margin-bottom: 1rem; /* 테이블 위 여백 */
+  }
+
+  .modal-info-table {
+    width: 100%;           /* 카드 너비 꽉 채움 */
+    border-collapse: collapse; /* 셀 사이 간격 없애기 */
+    font-size: 0.875rem;   /* 글자 약간 작게 */
+    margin-bottom: 1.5rem; /* 아래 여백 */
+  }
+
+  .modal-info-table tr {
+    border-bottom: 1px solid #f0f2f5; /* 행마다 구분선 */
+  }
+
+  .modal-info-table tr:last-child {
+    border-bottom: none; /* 마지막 행은 구분선 없애기 */
+  }
+
+  .modal-info-table td {
+    padding: 0.6rem 0.25rem; /* 셀 안 여백 */
+  }
+
+  .modal-info-table td:first-child {
+    color: #999; /* 회색 */
+    font-size: 0.8rem; /* 작은 글자 */
+    width: 35%; /* 왼쪽 열 넓이 */
+  }
+
+  .modal-info-table td:last-child {
+    font-weight: 600; /* 굵게 */
+    color: #333; /* 진한 회색 */
+    text-align: right; /* 오른쪽 정렬 */
+  }
+
+  /* 닫기 버튼 */
+  .btn-cancel {
+    width: 100%;         /* 카드 너비 꽉 채움 */
+    background: #f0f2f5; /* 연한 회색 배경 */
+    color: #555;         /* 글자색 회색 */
+    border: none;        /* 테두리 없애기 */
+    border-radius: 10px; /* 살짝 둥근 모서리 */
+    padding: 0.65rem;    /* 버튼 안 여백 */
+    font-size: 0.85rem;  /* 글자 크기 */
+    cursor: pointer;     /* 손가락 커서 */
+    transition: background 0.2s; /* 호버 시 부드럽게 */
+  }
+  .btn-cancel:hover { background: #e0e0e0; }
+
+  /* 스왑버튼 */
+  .btn-swap {
+  width: 100%;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 0.5rem;
+  }
+  .btn-swap:hover { background: #357abd; }
+
+  /* 삭제버튼 */
+  .btn-delete {
+  width: 100%;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 0.5rem;
+}
+.btn-delete:hover { background: #c62828; }
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.stats-table th,
+.stats-table td {
+    border-bottom: 1px solid #eee; /* 테두리를 조금 더 부드럽게 변경 */
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.stats-table th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: 600;
+    position: sticky; /* 테이블이 길어질 때 제목 고정 */
+    top: 0;
+}
+
+.stats-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.stats-table tr:hover {
+    background-color: #f1f8e9; /* 호버 시 연한 녹색으로 변경 */
+}
+
+/* 학생 ID 열 강조 */
+.stats-table td:first-child {
+    font-weight: 600;
+    color: #333;
+}

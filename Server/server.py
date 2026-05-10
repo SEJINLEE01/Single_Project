@@ -363,3 +363,31 @@ def delete_member(id: str):
     conn.commit()
     conn.close()
     return {"success": True}
+
+# html에서 사용하는 전체 출석 통계 조회
+@app.get("/attendance/all")
+def get_all_attendance():
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        """SELECT device_address, attendance_count, late_count, 
+                  early_leave_count, absence_count 
+           FROM AttendanceStatistics 
+           ORDER BY device_address"""
+    )
+    results = cursor.fetchall()
+    conn.close()
+    
+    if results:
+        data = []
+        for row in results:
+            data.append({
+                "device_address": row[0],
+                "attendance_count": row[1],
+                "late_count": row[2],
+                "early_leave_count": row[3],
+                "absence_count": row[4]
+            })
+        return {"success": True, "data": data}
+    else:
+        return {"success": True, "data": []}
