@@ -2,11 +2,14 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
 import os
 
 app = FastAPI()
+# 현재 폴더를 정적 파일로 제공
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # DB 초기화
 def init_db():
@@ -76,10 +79,6 @@ def init_db():
     # 관리자 계정 생성
     cursor.execute("INSERT INTO Login (id, password) VALUES (?, ?)", ("admin", "1234"))
 
-    # 하루 지나면 값초기화되는지 테스트
-    cursor.execute("INSERT INTO AttendanceStatus (device_address,status,today_attendance) VALUES (?,0,1)", ("test",))
-
-    
     conn.commit()
     conn.close()
 
