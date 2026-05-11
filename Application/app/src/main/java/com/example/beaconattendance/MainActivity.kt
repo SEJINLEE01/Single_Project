@@ -178,6 +178,7 @@ class MainActivity : AppCompatActivity() {
                                 // 퇴실시간 이후 -> 출석시간 이미 지남
                                 addLog("⚠️ 출석시간이 아닙니다.")
                                 isProcessing = false
+                                stopScan()
                                 return
                             }
 

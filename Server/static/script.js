@@ -293,7 +293,7 @@ function displayStudentStats(students) {
     students.forEach(student => {
         const row = `
             <tr>
-                <td>${student.student_id}</td>
+                <td>${student.device_address}</td>
                 <td>${student.attendance_count}</td>
                 <td>${student.late_count}</td>
                 <td>${student.early_leave_count}</td>
