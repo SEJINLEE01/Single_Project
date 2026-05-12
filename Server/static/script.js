@@ -31,6 +31,7 @@ let isAdmin = false;
 
             document.getElementById('settingBtn').style.display = 'none'; // 세팅 아이콘 숨기기
             document.getElementById('statsBtn').style.display = 'none'; // 통계 아이콘 숨기기
+            document.getElementById('logsBtn').style.display = 'none'; // 로그 아이콘 숨기기
 
             loadSeats(); 
             showAlert('🔐 관리자 모드가 비활성화되었습니다.');
@@ -48,6 +49,7 @@ let isAdmin = false;
 
           document.getElementById('settingBtn').style.display = 'inline'; // 세팅 아이콘 띄우기
           document.getElementById('statsBtn').style.display = 'inline'; // 통계 아이콘 띄우기
+          document.getElementById('logsBtn').style.display = 'inline'; // 로그 아이콘 띄우기
           loadSeats();
       } else {
           document.getElementById('adminLoginError').textContent = '❌ 아이디 또는 비밀번호가 틀렸습니다.';
@@ -302,8 +304,12 @@ function displayStudentStats(students) {
         `;
         tbody.innerHTML += row;
     });
-}
+  }
   
+  function openLogPage() {
+    window.open('/logs', '_blank');
+  }
+
   document.getElementById('adminPw').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') checkAdminLogin();
   });

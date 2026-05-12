@@ -15,6 +15,7 @@
 local.properties
 .idea/
 *.db
+*.pyc
 Application/.gradle/
 Application/.idea/
 Application/build/

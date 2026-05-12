@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>출석 로그</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background: #667eea;
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .action-SignIn {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .action-LogIn {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .action-LogOut {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .action-attendance {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .action-leave_early {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .action-absence {
+            background: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="btn btn-secondary back-btn" onclick="window.close()">대시보드 종료</button>
+        
+        <h1>📋 출석 로그</h1>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>날짜</label>
+                <input type="date" id="dateFilter">
+            </div>
+            <div class="filter-group">
+                <label>학생 ID</label>
+                <input type="text" id="deviceFilter" placeholder="학생 ID 입력">
+            </div>
+            <div class="filter-group">
+                <label>행동</label>
+                <select id="actionFilter">
+                    <option value="">전체</option>
+                    <option value="SignIn">회원가입</option>
+                    <option value="LogIn">로그인</option>
+                    <option value="LogOut">로그아웃</option>
+                    <option value="attendance">출석</option>
+                    <option value="leave_early">조퇴</option>
+                    <option value="absence">결석</option>
+                </select>
+            </div>
+            <div class="filter-group" style="justify-content: flex-end;">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" onclick="applyFilters()">검색</button>
+            </div>
+            <div class="filter-group" style="justify-content: flex-end;">
+                <label>&nbsp;</label>
+                <button class="btn btn-secondary" onclick="resetFilters()">초기화</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>핸드폰 주소</th>
+                    <th>행동</th>
+                    <th>시간</th>
+                </tr>
+            </thead>
+            <tbody id="logTableBody">
+                <tr><td colspan="3" class="no-data">로딩 중...</td></tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        let allLogs = [];
+        let filteredLogs = [];
+        let currentPage = 1;
+        const perPage = 50;
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+
+                if (data.success) {
+                    allLogs = data.logs;
+                    filteredLogs = [...allLogs];
+                    displayPage(1);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('logTableBody').innerHTML = 
+                    '<tr><td colspan="3" class="no-data">데이터를 불러오는데 실패했습니다.</td></tr>';
+            }
+        }
+
+        function applyFilters() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const deviceFilter = document.getElementById('deviceFilter').value.toLowerCase();
+            const actionFilter = document.getElementById('actionFilter').value;
+
+            filteredLogs = allLogs.filter(log => {
+                // 날짜 필터
+                if (dateFilter) {
+                    const logDate = log.timestamp.split(' ')[0];
+                    if (logDate !== dateFilter) return false;
+                }
+
+                // 학생 ID 필터
+                if (deviceFilter) {
+                    if (!log.device_address.toLowerCase().includes(deviceFilter)) return false;
+                }
+
+                // 행동 필터
+                if (actionFilter) {
+                    if (log.action !== actionFilter) return false;
+                }
+
+                return true;
+            });
+
+            displayPage(1);
+        }
+
+        function resetFilters() {
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('deviceFilter').value = '';
+            document.getElementById('actionFilter').value = '';
+            filteredLogs = [...allLogs];
+            displayPage(1);
+        }
+
+        function displayPage(page) {
+            const start = (page - 1) * perPage;
+            const end = start + perPage;
+            const pageData = filteredLogs.slice(start, end);
+            
+            displayLogs(pageData);
+            displayPagination(page, Math.ceil(filteredLogs.length / perPage));
+            currentPage = page;
+        }
+
+        function displayLogs(logs) {
+            const tbody = document.getElementById('logTableBody');
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="no-data">로그가 없습니다.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => {
+                const actionText = {
+                    'SignIn': '회원가입',
+                    'LogIn': '로그인',
+                    'LogOut': '로그아웃',
+                    'attendance': '출석',
+                    'leave_early': '조퇴',
+                    'absence': '결석'
+                }[log.action] || log.action;
+
+                return `
+                    <tr>
+                        <td>${log.id}</td>
+                        <td>${log.device_address}</td>
+                        <td><span class="action-badge action-${log.action}">${actionText}</span></td>
+                        <td>${formatTimestamp(log.timestamp)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function displayPagination(currentPage, totalPages) {
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            // 이전 버튼
+            html += `<button class="page-btn" onclick="displayPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>이전</button>`;
+
+            // 페이지 번호
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="displayPage(1)">1</button>`;
+                if (startPage > 2) html += `<span style="padding: 8px;">...</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="displayPage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<span style="padding: 8px;">...</span>`;
+                html += `<button class="page-btn" onclick="displayPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // 다음 버튼
+            html += `<button class="page-btn" onclick="displayPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>다음</button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 페이지 로드 시
+        window.onload = () => {
+            loadLogs(); // 첫 실행
+            setInterval(loadLogs, 60000); // 60000ms = 60초
+        };
+    </script>
+</body>
+</html>

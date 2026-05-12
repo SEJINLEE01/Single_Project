@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime
 from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
@@ -97,16 +98,21 @@ def Setting():
 def reset_today_attendance():
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
-    cursor.execute("UPDATE AttendanceStatus SET today_attendance=0")
+    
+    cursor.execute("SELECT device_address FROM AttendanceStatus WHERE today_attendance = 0")
+    absent_devices = [row[0] for row in cursor.fetchall()]
 
-    cursor.execute("""
-        UPDATE AttendanceStatistics 
-        SET absence_count = absence_count + 1
-        WHERE device_address IN (
-            SELECT device_address FROM AttendanceStatus WHERE today_attendance = 0
-        )
-    """)
+    if absent_devices:
+        placeholders = ', '.join(['?'] * len(absent_devices)) # 결석한 수 만큼 ? 생성
+        query = f"UPDATE AttendanceStatistics SET absence_count = absence_count + 1 WHERE device_address IN ({placeholders})"
+        cursor.execute(query, absent_devices) # (?,?,?), (adr1, adr2, adr3) 결석한 사람의 absence_count 증가
 
+        # 로그 남기기
+        now = datetime.now()
+        log_data = [(addr, "absence", now) for addr in absent_devices]
+        cursor.executemany("INSERT INTO Log (device_address, action, timestamp) VALUES (?, ?, ?)", log_data) # 같은 쿼리 대량입력
+
+    cursor.execute("UPDATE AttendanceStatus SET today_attendance=0") # 오늘 출석 상태 초기화
     conn.commit()
     conn.close()
 
@@ -150,10 +156,39 @@ class StatData(BaseModel):
     action: str  # "attendance", "late", "early_leave"
 
 # 대시보드 제공
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=FileResponse)
 def dashboard():
-    with open("dashboard.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return FileResponse("dashboard.html")
+
+#로그 페이지
+@app.get("/logs", response_class=FileResponse)
+async def logs_page():
+    return FileResponse("logs.html")
+
+#로그 API
+@app.get("/api/logs")
+def get_logs():
+    conn = sqlite3.connect("Data.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT id, device_address, action, timestamp 
+        FROM Log 
+        ORDER BY timestamp ASC
+    """)
+    results = cursor.fetchall()
+    conn.close()
+    
+    logs = []
+    for row in results:
+        logs.append({
+            "id": row[0],
+            "device_address": row[1],
+            "action": row[2],
+            "timestamp": row[3]
+        })
+    
+    return {"success": True, "logs": logs}
 
 # 세팅 값 보내기 
 @app.get("/settings")
