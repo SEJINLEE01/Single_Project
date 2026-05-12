@@ -37,7 +37,7 @@ data class RegisterResponse(
 
 data class StatusResponse(
     val status: Int,
-    val today: Int
+    val today_attendance: Int
 )
 
 data class StatData(

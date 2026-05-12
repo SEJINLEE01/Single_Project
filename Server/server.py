@@ -87,7 +87,7 @@ def Setting():
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
     
-    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkout_time","17:50"))
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkout_time","16:50"))
     cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkin_time","9:00"))
     cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("total_seats","29"))
     
@@ -164,7 +164,7 @@ def get_settings():
     rows = cursor.fetchall()
     conn.close()
     
-    # {"checkout_time": "17:50", "total_seats": "29"} 형태로 변환
+    # {"checkout_time": "16:50", "total_seats": "29"} 형태로 변환
     settings = {row[0]: row[1] for row in rows}
     return settings
     

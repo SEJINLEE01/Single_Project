@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
                 RetrofitClient.api.getStatus(checkData).enqueue(object : Callback<StatusResponse> {
                     override fun onResponse(call: Call<StatusResponse>, response: Response<StatusResponse>) {
                         val status = response.body()?.status
-                        val today = response.body()?.today
+                        val today = response.body()?.today_attendance
                         if (status == 0 && today != 1) {
                             if (currentTotal < 8 * 60) {
                                 // 8시 이전 → 출석 안됨
@@ -221,7 +221,6 @@ class MainActivity : AppCompatActivity() {
                                         }
                                         .setNegativeButton("취소") { _, _ ->
                                             isProcessing = false
-                                            startScan()
                                         }
                                         .show()
                                 }
