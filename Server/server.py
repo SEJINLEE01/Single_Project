@@ -112,6 +112,7 @@ def reset_today_attendance():
         log_data = [(addr, "absence", now) for addr in absent_devices]
         cursor.executemany("INSERT INTO Log (device_address, action, timestamp) VALUES (?, ?, ?)", log_data) # 같은 쿼리 대량입력
 
+    cursor.execute("UPDATE AttendanceStatus SET status=0") # 오늘 상태 초기화
     cursor.execute("UPDATE AttendanceStatus SET today_attendance=0") # 오늘 출석 상태 초기화
     conn.commit()
     conn.close()
@@ -286,9 +287,9 @@ def check(data: CheckData):
     cursor.execute("SELECT status FROM AttendanceStatus WHERE device_address=?", (data.device_address,))
     result = cursor.fetchone() # 튜플형태로 저장됨 (0,) 또는 (1,)
     if result[0] == 0: # 출석
-        cursor.execute("UPDATE AttendanceStatus SET status=1, today_attendance=1 WHERE device_address=?", (data.device_address,))
+        cursor.execute("UPDATE AttendanceStatus SET status=1 WHERE device_address=?", (data.device_address,))
     elif result[0] == 1: # 퇴실
-        cursor.execute("UPDATE AttendanceStatus SET status=0 WHERE device_address=?", (data.device_address,))
+        cursor.execute("UPDATE AttendanceStatus SET status=0, today_attendance=1 WHERE device_address=?", (data.device_address,))
 
     conn.commit()
     conn.close()
