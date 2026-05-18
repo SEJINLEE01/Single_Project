@@ -85,6 +85,10 @@ def init_db():
 
 # 세팅 값 설정
 def Setting():
+    if os.path.exists("Data.db"):
+        # os.remove("Data.db")
+        return
+        
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
     
