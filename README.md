@@ -8,7 +8,6 @@
 - **모바일**: Android (Kotlin, Android Studio)
 - **인프라**: ngrok (도메인 고정)
 - **스케줄링**: APScheduler
-- **아키텍처 패턴**: Singleton 패턴
 
 ## 📅 개발 타임라인
 
