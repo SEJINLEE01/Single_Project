@@ -88,7 +88,7 @@ def Setting():
     if os.path.exists("Data.db"):
         # os.remove("Data.db")
         return
-        
+
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
     
@@ -396,9 +396,16 @@ def delete_member(id: str):
     
     # AttendanceStatus 먼저 삭제 (외래키 때문에)
     cursor.execute("DELETE FROM AttendanceStatus WHERE device_address=?", (device_address,))
+    cursor.execute("DELETE FROM AttendanceStatistics WHERE device_address=?", (device_address,))
+
     # Login 삭제
     cursor.execute("DELETE FROM Login WHERE id=?", (id,))
     
+    cursor.execute("""
+        INSERT INTO Log (action, device_address, timestamp)
+        VALUES (?, ?, ?)
+    """, ("Delete_Account", device_address, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
     conn.commit()
     conn.close()
     return {"success": True}
