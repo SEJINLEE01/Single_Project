@@ -12,12 +12,21 @@ app = FastAPI()
 # 현재 폴더를 정적 파일로 제공
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# 세팅 값 설정
+def Setting(conn):
+    cursor = conn.cursor()
+    
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkout_time","16:50"))
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkin_time","9:00"))
+    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("total_seats","29"))
+
+
 # DB 초기화
 def init_db():
     # 이제 충분히 테스트 했으니 그냥 데베 남기기
     if os.path.exists("Data.db"):
-        # os.remove("Data.db")
-        return
+        os.remove("Data.db")
+        # return
 
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
@@ -80,24 +89,11 @@ def init_db():
     # 관리자 계정 생성
     cursor.execute("INSERT INTO Login (id, password) VALUES (?, ?)", ("admin", "1234"))
 
+    Setting(conn)
+
     conn.commit()
     conn.close()
 
-# 세팅 값 설정
-def Setting():
-    if os.path.exists("Data.db"):
-        # os.remove("Data.db")
-        return
-
-    conn = sqlite3.connect("Data.db")
-    cursor = conn.cursor()
-    
-    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkout_time","16:50"))
-    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("checkin_time","9:00"))
-    cursor.execute("INSERT INTO Settings (key, value) VALUES (?, ?)",("total_seats","29"))
-    
-    conn.commit()
-    conn.close()
 
 def reset_today_attendance():
     conn = sqlite3.connect("Data.db")
@@ -126,7 +122,7 @@ scheduler.add_job(reset_today_attendance, 'cron', hour=0, minute=0)  # 자정마
 scheduler.start() # 자정마다 오늘 출석했다는 상태 초기화
 
 init_db()
-Setting()
+
 
 # 출석 데이터 모델
 class LogData(BaseModel):
