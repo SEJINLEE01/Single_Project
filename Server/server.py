@@ -25,8 +25,8 @@ def Setting(conn):
 def init_db():
     # 이제 충분히 테스트 했으니 그냥 데베 남기기
     if os.path.exists("Data.db"):
-        os.remove("Data.db")
-        # return
+        # os.remove("Data.db")
+        return
 
     conn = sqlite3.connect("Data.db")
     cursor = conn.cursor()
