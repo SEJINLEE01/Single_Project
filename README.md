@@ -117,6 +117,20 @@ Android 앱과 서버 연동을 통한 실시간 데이터 처리 및 웹 대시
     <td></td>
   </tr>
 </table>
+<table>
+  <tr>
+    <td align="center"><b>📱 지각 처리 시 앱 화면</b></td>
+    <td align="center"><b>🗄️ 실제 학생 출결관리 DB 테이블</b></td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/4aa7b8bf-9df2-414d-9dbf-390ed6eae192" width="200" alt="지각 앱 화면">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/4ad6bc51-5b3e-46c9-99b2-940991de358b" width="700" alt="학생 정보 DB">
+    </td>
+  </tr>
+</table>
 
 
 ## 🎯 주요 기능
