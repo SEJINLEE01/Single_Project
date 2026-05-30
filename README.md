@@ -80,6 +80,45 @@ Android 앱과 서버 연동을 통한 실시간 데이터 처리 및 웹 대시
 - 학생 정보 조회 페이지
 - 로그 추적 페이지 추가
 
+## 🎬 실행 영상
+
+<table>
+  <tr>
+    <td align="center">
+      <b>앱 실행 영상 1</b><br>
+      <video src="https://github.com/user-attachments/assets/45996728-799b-4cdf-af05-edaadeb69186" controls width="250"></video>
+    </td>
+    <td align="center">
+      <b>앱 실행 영상 2</b><br>
+      <video src="https://github.com/user-attachments/assets/746279c5-4056-4842-8f20-fd892279e8a3" controls width="250"></video>
+    </td>
+    <td align="center">
+      <b>앱 실행 영상 3</b><br>
+      <video src="https://github.com/user-attachments/assets/cd7eb9f5-3772-4c12-94ab-0c9ed4e19954" controls width="250"></video>
+    </td>
+    <td align="center">
+      <b>앱 실행 영상 4</b><br>
+      <video src="https://github.com/user-attachments/assets/50e4b010-7f79-4a0c-bbc4-4d4b73af03ca" controls width="250"></video>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>웹 대시보드 1</b><br>
+      <video src="https://github.com/user-attachments/assets/61e2c704-1004-4eb6-9c5c-cf3e669419c7" controls width="250"></video>
+    </td>
+    <td align="center">
+      <b>웹 대시보드 2</b><br>
+      <video src="https://github.com/user-attachments/assets/22151f7a-1951-4360-8105-b248e85f7529" controls width="250"></video>
+    </td>
+    <td align="center">
+      <b>웹 대시보드 3</b><br>
+      <video src="https://github.com/user-attachments/assets/c0271fa2-01ce-491f-a10c-ce96c0a33365" controls width="250"></video>
+    </td>
+    <td></td>
+  </tr>
+</table>
+
+
 ## 🎯 주요 기능
 
 ### 사용자 기능
