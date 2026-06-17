@@ -135,6 +135,9 @@ Android 앱과 서버 연동을 통한 실시간 데이터 처리 및 웹 대시
 
 ## 🎯 주요 기능
 
+### 아키텍쳐
+<img width="2430" height="1728" alt="Gemini_Generated_Image_t1j0mvt1j0mvt1j0" src="https://github.com/user-attachments/assets/14aaf3a2-ffac-4525-8a8f-caaf97a10ebf" />
+
 ### 사용자 기능
 - 비콘 자동 스캔을 통한 무인 출결 체크
 - 자동 로그인 (SharedPreferences)
